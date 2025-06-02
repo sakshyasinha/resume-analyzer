@@ -1,5 +1,3 @@
-# resume_analyzer.py
-
 import streamlit as st
 import fitz  # PyMuPDF
 import nltk
@@ -9,12 +7,9 @@ import matplotlib.pyplot as plt
 import re
 from nltk.corpus import stopwords
 
-# Download NLTK stopwords
+
 nltk.download('stopwords')
 
-# -------------------
-# JOB ROLE TEMPLATES
-# -------------------
 
 job_descriptions = {
     "Data Scientist": "python machine learning pandas numpy statistics data analysis SQL sklearn regression clustering matplotlib seaborn data cleaning",
@@ -39,77 +34,49 @@ job_descriptions = {
     "QA Tester": "manual testing automation selenium JUnit test cases regression testing bug tracking SDLC test scripts",
 }
 
-# -------------------
-# CLEAN TEXT FUNCTION
-# -------------------
-
 def clean_text(text):
-    text = text.lower()
-    text = re.sub(r'\W+', ' ', text)
-    text = ' '.join([word for word in text.split() if word not in stopwords.words('english')])
+    text=text.lower()
+    text=re.sub(r'\d+', '', text)  # Remove numbers
+    text=re.sub(r'[^\w\s]', '', text)  # Remove punctuation
+    text=re.sub(r'\s+', ' ', text).strip()  # Remove extra spaces
+    text-' '.join([word for word in text.split() if word not in stopwords.words('english')])  # Remove stopwords
     return text
 
-# -------------------
-# EXTRACT RESUME TEXT
-# -------------------
-
-def extract_text(uploaded_file):
-    doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-    text = ""
+def extract_text(umloaded_file):
+    doc=fitz.open(stream=uploaded_file.read(), filetype="pdf")
+    text=""
     for page in doc:
-        text += page.get_text()
+        text+=page.get_text()
     return text
 
-# -------------------
-# STREAMLIT UI
-# -------------------
-
-st.title("📄 AI Resume Analyzer")
-st.markdown("Upload your resume and get job role recommendations!")
-
-uploaded_file = st.file_uploader("Upload Resume (PDF)", type=["pdf"])
+st.title("Resume Analyzer")
+st.write("Upload your resume in PDF format to analyze it against job descriptions.")
+uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
 if uploaded_file:
     resume_text = extract_text(uploaded_file)
-    st.subheader("📄 Extracted Text Preview:")
-    st.text_area("", resume_text[:1000], height=300)
+    st.subheader("Extracted Resume Text")
+    st.write(resume_text)
 
-    clean_resume = clean_text(resume_text)
+    cleaned_resume = clean_text(resume_text)
+    st.subheader("Cleaned Resume Text")
+    st.write(cleaned_resume)
 
-    # TF-IDF
-    roles = list(job_descriptions.keys())
-    corpus = list(job_descriptions.values())
-    corpus.append(clean_resume)  # last one is user's resume
-
+    job_title = st.selectbox("Select Job Title", list(job_descriptions.keys()))
+    job_description = job_descriptions[job_title]
+    
+    cleaned_job_description = clean_text(job_description)
+    
     vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform(corpus)
-
-    resume_vector = vectors[-1]
-    role_vectors = vectors[:-1]
-
-    similarities = cosine_similarity(resume_vector, role_vectors)[0]
-
-    # Get best match
-    best_idx = similarities.argmax()
-    best_role = roles[best_idx]
-    confidence = similarities[best_idx] * 100
-
-    st.subheader("🔍 Best Match:")
-    st.success(f"**{best_role}** ({confidence:.2f}% match)")
-
-    st.write("📌 Other Scores:")
-
-    # Bar chart
-    st.subheader("📊 Match Score Chart:")
-    sorted_roles = sorted(zip(roles, similarities), key=lambda x: x[1], reverse=True)
-    top_roles, top_scores = zip(*sorted_roles)
-
-    fig, ax = plt.subplots()
-    ax.barh(top_roles[::-1], top_scores[::-1])
-    ax.set_xlabel("Match Score")
-    ax.set_title("Resume vs Job Role Similarity")
-    st.pyplot(fig)
-
-    # List all roles and scores
-    for role, score in zip(roles, similarities):
-        st.write(f"{role}: {score:.2f}")
+    vectors = vectorizer.fit_transform([cleaned_resume, cleaned_job_description])
+    
+    cosine_sim = cosine_similarity(vectors[0:1], vectors[1:2])
+    
+    st.subheader(f"Cosine Similarity with {job_title} Description")
+    st.write(f"Similarity Score: {cosine_sim[0][0]:.4f}")
+    
+    plt.figure(figsize=(8, 4))
+    plt.bar(["Resume", "Job Description"], [cosine_sim[0][0], 1 - cosine_sim[0][0]], color=['blue', 'orange'])
+    plt.title("Cosine Similarity Visualization")
+    plt.ylabel("Similarity Score")
+    st.pyplot(plt)
