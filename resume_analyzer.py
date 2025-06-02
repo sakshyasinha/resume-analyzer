@@ -98,10 +98,7 @@ if uploaded_file:
     st.success(f"**{best_role}** ({confidence:.2f}% match)")
 
     st.write("📌 Other Scores:")
-    for role, score in zip(roles, similarities):
-        st.write(f"{role}: {score:.2f}")
-
-import matplotlib.pyplot as plt
+       import matplotlib.pyplot as plt
 
 st.subheader("📊 Match Score Chart:")
 sorted_roles = sorted(zip(roles, similarities), key=lambda x: x[1], reverse=True)
@@ -112,3 +109,14 @@ ax.barh(top_roles[::-1], top_scores[::-1])
 ax.set_xlabel("Match Score")
 ax.set_title("Resume vs Job Role Similarity")
 st.pyplot(fig)
+    
+    for role, score in zip(roles, similarities):
+        st.write(f"{role}: {score:.2f}")
+
+
+        
+
+
+
+
+ 
