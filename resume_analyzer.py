@@ -42,17 +42,6 @@ job_descriptions = {
 # -------------------
 # CLEAN TEXT FUNCTION
 # -------------------
-import matplotlib.pyplot as plt
-
-st.subheader("📊 Match Score Chart:")
-sorted_roles = sorted(zip(roles, similarities), key=lambda x: x[1], reverse=True)
-top_roles, top_scores = zip(*sorted_roles)
-
-fig, ax = plt.subplots()
-ax.barh(top_roles[::-1], top_scores[::-1])
-ax.set_xlabel("Match Score")
-ax.set_title("Resume vs Job Role Similarity")
-st.pyplot(fig)
 
 def clean_text(text):
     text = text.lower()
@@ -111,3 +100,15 @@ if uploaded_file:
     st.write("📌 Other Scores:")
     for role, score in zip(roles, similarities):
         st.write(f"{role}: {score:.2f}")
+
+import matplotlib.pyplot as plt
+
+st.subheader("📊 Match Score Chart:")
+sorted_roles = sorted(zip(roles, similarities), key=lambda x: x[1], reverse=True)
+top_roles, top_scores = zip(*sorted_roles)
+
+fig, ax = plt.subplots()
+ax.barh(top_roles[::-1], top_scores[::-1])
+ax.set_xlabel("Match Score")
+ax.set_title("Resume vs Job Role Similarity")
+st.pyplot(fig)
