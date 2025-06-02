@@ -5,11 +5,12 @@ import fitz  # PyMuPDF
 import nltk
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import matplotlib.pyplot as plt
+import re
+from nltk.corpus import stopwords
 
 # Download NLTK stopwords
 nltk.download('stopwords')
-from nltk.corpus import stopwords
-import re
 
 # -------------------
 # JOB ROLE TEMPLATES
@@ -37,7 +38,6 @@ job_descriptions = {
     "Blockchain Developer": "solidity ethereum smart contracts web3.js dApps crypto blockchain security consensus tokens",
     "QA Tester": "manual testing automation selenium JUnit test cases regression testing bug tracking SDLC test scripts",
 }
-
 
 # -------------------
 # CLEAN TEXT FUNCTION
@@ -98,25 +98,18 @@ if uploaded_file:
     st.success(f"**{best_role}** ({confidence:.2f}% match)")
 
     st.write("📌 Other Scores:")
-       import matplotlib.pyplot as plt
 
-st.subheader("📊 Match Score Chart:")
-sorted_roles = sorted(zip(roles, similarities), key=lambda x: x[1], reverse=True)
-top_roles, top_scores = zip(*sorted_roles)
+    # Bar chart
+    st.subheader("📊 Match Score Chart:")
+    sorted_roles = sorted(zip(roles, similarities), key=lambda x: x[1], reverse=True)
+    top_roles, top_scores = zip(*sorted_roles)
 
-fig, ax = plt.subplots()
-ax.barh(top_roles[::-1], top_scores[::-1])
-ax.set_xlabel("Match Score")
-ax.set_title("Resume vs Job Role Similarity")
-st.pyplot(fig)
-    
+    fig, ax = plt.subplots()
+    ax.barh(top_roles[::-1], top_scores[::-1])
+    ax.set_xlabel("Match Score")
+    ax.set_title("Resume vs Job Role Similarity")
+    st.pyplot(fig)
+
+    # List all roles and scores
     for role, score in zip(roles, similarities):
         st.write(f"{role}: {score:.2f}")
-
-
-        
-
-
-
-
- 
