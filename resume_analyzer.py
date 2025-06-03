@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 import re
 from nltk.corpus import stopwords
 
-
+# Download stopwords if not already downloaded
 nltk.download('stopwords')
 
-
+# Dictionary of job descriptions
 job_descriptions = {
     "Data Scientist": "python machine learning pandas numpy statistics data analysis SQL sklearn regression clustering matplotlib seaborn data cleaning",
     "Web Developer": "HTML CSS JavaScript React Node.js frontend backend REST APIs authentication Express MongoDB responsive design Git",
@@ -34,50 +34,59 @@ job_descriptions = {
     "QA Tester": "manual testing automation selenium JUnit test cases regression testing bug tracking SDLC test scripts",
 }
 
+# Function to clean text
 def clean_text(text):
-    text=text.lower()
-    text=re.sub(r'\d+', '', text)  # Remove numbers
-    text=re.sub(r'[^\w\s]', '', text)  # Remove punctuation
-    text=re.sub(r'\s+', ' ', text).strip()  # Remove extra spaces
-    text = ' '.join([word for word in text.split() if word.lower() not in stopwords.words('english')])
-  # Remove stopwords
+    text = text.lower()
+    text = re.sub(r'\d+', '', text)
+    text = re.sub(r'[^\w\s]', '', text)
+    text = re.sub(r'\s+', ' ', text).strip()
+    stop_words = set(stopwords.words('english'))
+    text = ' '.join([word for word in text.split() if word not in stop_words])
     return text
 
-def extract_text(umloaded_file):
-    doc=fitz.open(stream=uploaded_file.read(), filetype="pdf")
-    text=""
+# Function to extract text from uploaded PDF
+def extract_text(uploaded_file):
+    doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+    text = ""
     for page in doc:
-        text+=page.get_text()
+        text += page.get_text()
     return text
 
-st.title("Resume Analyzer")
-st.write("Upload your resume in PDF format to analyze it against job descriptions.")
+# Streamlit UI
+st.title("📄 Resume Analyzer")
+st.write("Upload your resume in PDF format and compare it to different job descriptions.")
+
 uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
 if uploaded_file:
-    resume_text = extract_text(uploaded_file)
-    st.subheader("Extracted Resume Text")
-    st.write(resume_text)
+    with st.spinner("Extracting and analyzing resume..."):
+        resume_text = extract_text(uploaded_file)
+        st.subheader("📄 Extracted Resume Text")
+        st.write(resume_text)
 
-    cleaned_resume = clean_text(resume_text)
-    st.subheader("Cleaned Resume Text")
-    st.write(cleaned_resume)
+        cleaned_resume = clean_text(resume_text)
+        st.subheader("🧹 Cleaned Resume Text")
+        st.write(cleaned_resume)
 
-    job_title = st.selectbox("Select Job Title", list(job_descriptions.keys()))
-    job_description = job_descriptions[job_title]
-    
-    cleaned_job_description = clean_text(job_description)
-    
-    vectorizer = TfidfVectorizer()
-    vectors = vectorizer.fit_transform([cleaned_resume, cleaned_job_description])
-    
-    cosine_sim = cosine_similarity(vectors[0:1], vectors[1:2])
-    
-    st.subheader(f"Cosine Similarity with {job_title} Description")
-    st.write(f"Similarity Score: {cosine_sim[0][0]:.4f}")
-    
-    plt.figure(figsize=(8, 4))
-    plt.bar(["Resume", "Job Description"], [cosine_sim[0][0], 1 - cosine_sim[0][0]], color=['blue', 'orange'])
-    plt.title("Cosine Similarity Visualization")
-    plt.ylabel("Similarity Score")
-    st.pyplot(plt)
+        job_title = st.selectbox("Select Job Title", list(job_descriptions.keys()))
+        job_description = job_descriptions[job_title]
+        cleaned_job_description = clean_text(job_description)
+
+        # Vectorize and compare
+        vectorizer = TfidfVectorizer()
+        vectors = vectorizer.fit_transform([cleaned_resume, cleaned_job_description])
+        cosine_sim = cosine_similarity(vectors[0:1], vectors[1:2])
+
+        # Display similarity score
+        st.subheader(f"📊 Cosine Similarity with '{job_title}' Description")
+        st.write(f"**Similarity Score:** `{cosine_sim[0][0]:.4f}` (1.0 is highest match)")
+
+        # Visualization
+        plt.figure(figsize=(8, 4))
+        plt.bar(["Resume", "Job Description"], [cosine_sim[0][0], 1 - cosine_sim[0][0]], color=['blue', 'orange'])
+        plt.title("Cosine Similarity Visualization")
+        plt.ylabel("Similarity Score")
+        st.pyplot(plt)
+        plt.clf()  # Clear for next plot
+else:
+    st.info("Please upload a PDF resume to begin analysis.")
