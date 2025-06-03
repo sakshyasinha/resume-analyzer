@@ -39,7 +39,8 @@ def clean_text(text):
     text=re.sub(r'\d+', '', text)  # Remove numbers
     text=re.sub(r'[^\w\s]', '', text)  # Remove punctuation
     text=re.sub(r'\s+', ' ', text).strip()  # Remove extra spaces
-    text-' '.join([word for word in text.split() if word not in stopwords.words('english')])  # Remove stopwords
+    text = ' '.join([word for word in text.split() if word.lower() not in stopwords.words('english')])
+  # Remove stopwords
     return text
 
 def extract_text(umloaded_file):
