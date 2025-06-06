@@ -3,3 +3,4 @@ PyMuPDF
 nltk
 scikit-learn
 matplotlib
+mistral
