@@ -6,7 +6,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import matplotlib.pyplot as plt
 import re
 from nltk.corpus import stopwords
-from mistral import MistralClient
+
 
 
 nltk.download('stopwords')
