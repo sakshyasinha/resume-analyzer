@@ -97,8 +97,6 @@ if uploaded_file:
     st.write(resume_text)
 
     cleaned_resume = clean_text(resume_text)
-    st.subheader("🧹 Cleaned Resume Text")
-    st.write(cleaned_resume)
 
     job_title = st.selectbox("🎯 Select Job Title", list(job_descriptions.keys()))
     job_description = job_descriptions[job_title]
